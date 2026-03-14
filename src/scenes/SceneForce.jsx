@@ -23,7 +23,11 @@ function SceneForce({ data, width, height, onHover, onLeave }) {
     const arrExtent = d3.extent(data, (d) => d.arr);
     const rScale = d3.scaleSqrt().domain(arrExtent).range([6, 36]);
 
-    const nodes = data.map((d) => ({ ...d }));
+    const nodes = data.map((d) => ({
+      ...d,
+      x: width / 2 + (Math.random() - 0.5) * 200,
+      y: height / 2 + (Math.random() - 0.5) * 200,
+    }));
     const links = buildLinks(nodes);
 
     const g = svg.append('g');
@@ -62,8 +66,10 @@ function SceneForce({ data, width, height, onHover, onLeave }) {
     const sim = d3
       .forceSimulation(nodes)
       .force('link', d3.forceLink(links).id((d) => d.id).distance(80).strength((d) => d.strength * 0.3))
-      .force('charge', d3.forceManyBody().strength(-120))
+      .force('charge', d3.forceManyBody().strength(-80))
       .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('x', d3.forceX(width / 2).strength(0.08))
+      .force('y', d3.forceY(height / 2).strength(0.08))
       .force('collision', d3.forceCollide().radius((d) => rScale(d.arr) + 4))
       .on('tick', () => {
         link
@@ -76,6 +82,13 @@ function SceneForce({ data, width, height, onHover, onLeave }) {
       });
 
     simRef.current = sim;
+
+    sim.tick(100);
+    node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+    link
+      .attr('x1', (d) => d.source.x).attr('y1', (d) => d.source.y)
+      .attr('x2', (d) => d.target.x).attr('y2', (d) => d.target.y);
+    labels.attr('x', (d) => d.x).attr('y', (d) => d.y);
 
     // enter transitions
     node

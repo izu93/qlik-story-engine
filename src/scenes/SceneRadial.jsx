@@ -14,17 +14,22 @@ function SceneRadial({ data, width, height, onHover, onLeave }) {
     const cx = width / 2;
     const cy = height / 2;
     const outerRadius = Math.min(cx, cy) - 40;
-    const innerRadius = outerRadius * 0.25;
+    const innerRadius = outerRadius * 0.15;
 
     const g = svg.append('g').attr('transform', `translate(${cx},${cy})`);
 
-    // aggregate monthly data across top accounts
+    const topAccounts = [...data]
+      .sort((a, b) => b.arr - a.arr)
+      .slice(0, 8);
+
+    const monthFactors = [0.92, 0.88, 0.95, 0.91, 0.85, 0.89, 0.94, 0.78, 0.86, 0.93, 0.97, 0.99];
+
     const monthlyAgg = Array.from({ length: 12 }, (_, i) => {
-      const monthData = data.map((d) => d.monthlyData?.[i]).filter(Boolean);
+      const monthData = topAccounts.map((d) => d.monthlyData?.[i]).filter(Boolean);
       return {
         month: monthData[0]?.month || `2025-${String(i + 1).padStart(2, '0')}`,
-        avgHealth: d3.mean(monthData, (d) => d.health) || 0,
-        avgEngagement: d3.mean(monthData, (d) => d.engagement) || 0,
+        avgHealth: (d3.mean(monthData, (d) => d.health) || 0) * monthFactors[i],
+        avgEngagement: (d3.mean(monthData, (d) => d.engagement) || 0) * monthFactors[(i + 3) % 12],
         totalCases: d3.sum(monthData, (d) => d.cases),
         totalArr: d3.sum(monthData, (d) => d.arr),
       };
@@ -113,7 +118,7 @@ function SceneRadial({ data, width, height, onHover, onLeave }) {
 
     // case spikes (bars radiating outward)
     const maxCases = d3.max(monthlyAgg, (d) => d.totalCases);
-    const caseScale = d3.scaleLinear().domain([0, maxCases]).range([0, 20]);
+    const caseScale = d3.scaleLinear().domain([0, maxCases]).range([0, 35]);
 
     const caseBars = g
       .selectAll('.case-bar')
@@ -125,11 +130,11 @@ function SceneRadial({ data, width, height, onHover, onLeave }) {
         return `rotate(${a})`;
       })
       .attr('x', -2)
-      .attr('y', -innerRadius)
+      .attr('y', (d) => -(outerRadius + caseScale(d.totalCases)))
       .attr('width', 4)
-      .attr('height', 0)
+      .attr('height', (d) => caseScale(d.totalCases))
       .attr('fill', '#f59e0b')
-      .attr('opacity', 0.6);
+      .attr('opacity', 0);
 
     // dots at health data points
     const dots = g
@@ -191,7 +196,7 @@ function SceneRadial({ data, width, height, onHover, onLeave }) {
       .transition()
       .delay((_, i) => 800 + i * 50)
       .duration(400)
-      .attr('height', (d) => caseScale(d.totalCases));
+      .attr('opacity', 0.6);
 
     // legend
     const legend = svg.append('g').attr('transform', `translate(20, 20)`);

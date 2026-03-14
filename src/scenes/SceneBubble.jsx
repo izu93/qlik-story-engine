@@ -33,7 +33,7 @@ function SceneBubble({ data, width, height, onHover, onLeave }) {
       .domain(d3.extent(data, (d) => d.arr))
       .range([5, 40]);
 
-    // danger zone
+    // danger zone (low health + low engagement)
     g.append('rect')
       .attr('x', x(0))
       .attr('y', y(50))
@@ -44,6 +44,61 @@ function SceneBubble({ data, width, height, onHover, onLeave }) {
       .transition()
       .duration(600)
       .attr('opacity', 0.06);
+
+    // expansion zone (high health + high engagement)
+    g.append('rect')
+      .attr('x', x(50))
+      .attr('y', y(100))
+      .attr('width', x(50))
+      .attr('height', h - y(50))
+      .attr('fill', '#22c55e')
+      .attr('opacity', 0)
+      .transition()
+      .duration(600)
+      .attr('opacity', 0.04);
+
+    // midlines
+    g.append('line')
+      .attr('x1', x(50)).attr('y1', 0)
+      .attr('x2', x(50)).attr('y2', h)
+      .attr('stroke', '#334155')
+      .attr('stroke-width', 0.5)
+      .attr('stroke-dasharray', '4 4')
+      .attr('opacity', 0.4);
+
+    g.append('line')
+      .attr('x1', 0).attr('y1', y(50))
+      .attr('x2', w).attr('y2', y(50))
+      .attr('stroke', '#334155')
+      .attr('stroke-width', 0.5)
+      .attr('stroke-dasharray', '4 4')
+      .attr('opacity', 0.4);
+
+    // quadrant labels
+    const quadrants = [
+      { x: x(25), y: y(25), label: 'High Risk', color: '#ef4444' },
+      { x: x(75), y: y(25), label: 'Needs Attention', color: '#f59e0b' },
+      { x: x(25), y: y(75), label: 'Underutilized', color: '#94a3b8' },
+      { x: x(75), y: y(75), label: 'Champions', color: '#22c55e' },
+    ];
+
+    g.selectAll('.quadrant-label')
+      .data(quadrants)
+      .join('text')
+      .attr('class', 'quadrant-label')
+      .attr('x', (d) => d.x)
+      .attr('y', (d) => d.y)
+      .attr('text-anchor', 'middle')
+      .attr('fill', (d) => d.color)
+      .attr('font-size', 11)
+      .attr('font-family', 'IBM Plex Mono, monospace')
+      .attr('letter-spacing', '0.08em')
+      .attr('opacity', 0)
+      .text((d) => d.label)
+      .transition()
+      .delay(400)
+      .duration(600)
+      .attr('opacity', 0.35);
 
     // axes
     const xAxis = g
