@@ -1,58 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import * as d3 from 'd3';
+import { useState } from 'react';
 
-export default function EntryScreen({ onStart }) {
+export default function EntryScreen({ onStart, error }) {
   const [appId, setAppId] = useState('');
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const svg = d3.select(canvasRef.current);
-    const w = 320;
-    const h = 200;
-
-    svg.attr('viewBox', `0 0 ${w} ${h}`);
-
-    const nodes = d3.range(30).map(() => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: 2 + Math.random() * 5,
-    }));
-
-    const circles = svg
-      .selectAll('circle')
-      .data(nodes)
-      .join('circle')
-      .attr('cx', (d) => d.x)
-      .attr('cy', (d) => d.y)
-      .attr('r', 0)
-      .attr('fill', () =>
-        d3.interpolateViridis(Math.random())
-      )
-      .attr('opacity', 0.4);
-
-    circles
-      .transition()
-      .duration(1200)
-      .delay((_, i) => i * 40)
-      .ease(d3.easeElasticOut)
-      .attr('r', (d) => d.r);
-
-    function pulse() {
-      circles
-        .transition()
-        .duration(2000 + Math.random() * 1500)
-        .attr('cx', (d) => d.x + (Math.random() - 0.5) * 20)
-        .attr('cy', (d) => d.y + (Math.random() - 0.5) * 15)
-        .attr('opacity', () => 0.2 + Math.random() * 0.4)
-        .transition()
-        .duration(2000 + Math.random() * 1500)
-        .attr('cx', (d) => d.x)
-        .attr('cy', (d) => d.y)
-        .attr('opacity', 0.4)
-        .on('end', (_, i) => { if (i === 0) pulse(); });
-    }
-    pulse();
-  }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -61,26 +10,106 @@ export default function EntryScreen({ onStart }) {
 
   return (
     <div className="entry-screen">
-      <div className="entry-screen__content">
-        <svg ref={canvasRef} className="entry-screen__preview" />
-        <h1 className="entry-screen__title">Qlik Story Engine</h1>
+      {/* ── Left Column ── */}
+      <div className="entry-screen__left">
+        <div className="entry-screen__eyebrow">
+          <span className="entry-dot" style={{ background: '#d94f28' }} />
+          <span className="entry-dot" style={{ background: '#c98b1f' }} />
+          <span className="entry-dot" style={{ background: '#35976b' }} />
+          <span className="entry-screen__eyebrow-text">Qlik Story Engine</span>
+        </div>
+
+        <h1 className="entry-screen__headline">
+          Every dataset<br />
+          <em>has a story.</em><br />
+          Let&#8217;s find yours.
+        </h1>
+
         <p className="entry-screen__subtitle">
-          Paste a Qlik App ID to generate a cinematic data story,
-          or explore with demo data.
+          Paste a Qlik App ID. Your customer signals transform into
+          a cinematic scrollable narrative&nbsp;&mdash; powered by live
+          Qlik data and D3.
         </p>
-        <form className="entry-screen__form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            className="entry-screen__input"
-            placeholder="Qlik App ID (leave blank for demo)"
-            value={appId}
-            onChange={(e) => setAppId(e.target.value)}
-            autoFocus
-          />
-          <button type="submit" className="entry-screen__button">
-            {appId.trim() ? 'Connect & Build Story' : 'Launch Demo Story'}
-          </button>
+
+        <form onSubmit={handleSubmit}>
+          <div className="entry-screen__input-wrap">
+            <input
+              type="text"
+              className="entry-screen__input"
+              placeholder="e.g. e8412bfa-8d2e-4330-a9e3…"
+              value={appId}
+              onChange={(e) => setAppId(e.target.value)}
+              autoFocus
+            />
+            <button type="submit" className="entry-screen__btn">
+              Generate Story &rarr;
+            </button>
+          </div>
         </form>
+
+        <p className="entry-screen__demo-hint">
+          or{' '}
+          <button
+            type="button"
+            className="entry-screen__demo-btn"
+            onClick={() => onStart(null)}
+          >
+            load demo &middot; Customer Signal Dashboard
+          </button>
+        </p>
+
+        <div className="entry-screen__status">
+          {error && <span className="entry-screen__error">{error}</span>}
+        </div>
+      </div>
+
+      {/* ── Right Column ── */}
+      <div className="entry-screen__right">
+        <svg viewBox="0 0 500 500" className="entry-screen__orbit-svg">
+          {/* Faint connection lines */}
+          <line x1="250" y1="250" x2="345" y2="250" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+          <line x1="250" y1="250" x2="250" y2="120" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+          <line x1="250" y1="250" x2="155" y2="290" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+          <line x1="250" y1="250" x2="310" y2="170" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+          <line x1="250" y1="250" x2="130" y2="200" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+          <line x1="250" y1="250" x2="350" y2="310" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
+
+          {/* Orbiting account nodes */}
+          <circle className="orbit-node orbit-node--1" cx="250" cy="250" r="10" fill="#3282c8" />
+          <circle className="orbit-node orbit-node--2" cx="250" cy="250" r="8"  fill="#35976b" />
+          <circle className="orbit-node orbit-node--3" cx="250" cy="250" r="12" fill="#c98b1f" />
+          <circle className="orbit-node orbit-node--4" cx="250" cy="250" r="7"  fill="#7c52e8" />
+          <circle className="orbit-node orbit-node--5" cx="250" cy="250" r="9"  fill="#d94f28" />
+          <circle className="orbit-node orbit-node--6" cx="250" cy="250" r="11" fill="#35976b" />
+
+          {/* Floating account labels */}
+          <text className="orbit-label orbit-label--1" x="250" y="250">Meridian</text>
+          <text className="orbit-label orbit-label--2" x="250" y="250">Apex</text>
+          <text className="orbit-label orbit-label--3" x="250" y="250">ClearView</text>
+          <text className="orbit-label orbit-label--4" x="250" y="250">TerraVolt</text>
+
+          {/* Center pulse node */}
+          <circle cx="250" cy="250" r="32" fill="#d94f28" opacity="0.9" />
+          <circle className="pulse-ring" cx="250" cy="250" r="32" fill="none" stroke="#d94f28" strokeWidth="1" />
+          <text
+            x="250" y="250"
+            fill="white"
+            fontSize="12"
+            fontFamily="monospace"
+            textAnchor="middle"
+            dominantBaseline="central"
+          >CSP</text>
+
+          {/* Bottom watermark */}
+          <text
+            x="250" y="480"
+            textAnchor="middle"
+            fontFamily="monospace"
+            fontSize="9"
+            letterSpacing="0.2em"
+            fill="rgba(255,255,255,0.12)"
+          >POWERED BY QLIK MCP &middot; LIVE DATA</text>
+        </svg>
       </div>
     </div>
   );

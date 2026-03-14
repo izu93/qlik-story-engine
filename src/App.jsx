@@ -29,12 +29,7 @@ export default function App() {
   }, []);
 
   if (!data && !loading) {
-    return (
-      <>
-        <EntryScreen onStart={handleStart} />
-        {error && <div className="error-toast">{error}</div>}
-      </>
-    );
+    return <EntryScreen onStart={handleStart} error={error} />;
   }
 
   if (loading) {
