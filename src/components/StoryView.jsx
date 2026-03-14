@@ -4,29 +4,34 @@ import { recommendScenes, generateNarrative } from '../lib/recommender.js';
 import VizCanvas from './VizCanvas.jsx';
 import NarrativePanel from './NarrativePanel.jsx';
 import HUD from './HUD.jsx';
-import Tooltip, { useTooltip } from './Tooltip.jsx';
 
 export default function StoryView({ data }) {
   const [chapters, setChapters] = useState([]);
-  const [activeChapter, setActiveChapter] = useState(-1);
+  const [activeChapter, setActiveChapter] = useState(0);
   const [scrollProgress, setScrollProgress] = useState({
     globalProgress: 0,
     chapterProgress: 0,
   });
   const narrativeRef = useRef(null);
   const scrollerRef = useRef(null);
-  const { tooltip, showTooltip, hideTooltip } = useTooltip();
 
   useEffect(() => {
     if (!data) return;
 
     const scenes = recommendScenes(data);
-    const built = scenes.map((scene) => ({
+    const seen = new Set();
+    const unique = scenes.filter((s) => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
+    const built = unique.map((scene) => ({
       sceneId: scene.id,
       scene,
       ...generateNarrative(scene, data.stats),
     }));
     setChapters(built);
+    setActiveChapter(0);
   }, [data]);
 
   useEffect(() => {
@@ -62,10 +67,11 @@ export default function StoryView({ data }) {
         const copy = [...prev];
         const allScenes = recommendScenes(data);
         const currentId = copy[chapterIdx].sceneId;
-        const alternatives = allScenes.filter((s) => s.id !== currentId);
-        if (!alternatives.length) return prev;
+        const candidates = allScenes.filter((s) => s.id !== currentId);
+        if (!candidates.length) return prev;
 
-        const next = alternatives[0];
+        const next = candidates[0];
+
         copy[chapterIdx] = {
           ...copy[chapterIdx],
           sceneId: next.id,
@@ -91,8 +97,6 @@ export default function StoryView({ data }) {
           <VizCanvas
             scene={activeScene}
             data={activeData}
-            onHover={showTooltip}
-            onLeave={hideTooltip}
           />
         </div>
         <div className="story-view__narrative" ref={narrativeRef}>
@@ -103,7 +107,6 @@ export default function StoryView({ data }) {
           />
         </div>
       </div>
-      <Tooltip tooltip={tooltip} />
     </div>
   );
 }

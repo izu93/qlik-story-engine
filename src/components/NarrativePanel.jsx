@@ -3,7 +3,7 @@ export default function NarrativePanel({ chapters, activeChapter, onSwapScene })
     <div className="narrative-panels">
       {chapters.map((chapter, idx) => (
         <div
-          key={chapter.sceneId}
+          key={`${idx}-${chapter.sceneId}`}
           data-chapter={idx}
           className={`narrative-panel ${idx === activeChapter ? 'narrative-panel--active' : ''}`}
         >

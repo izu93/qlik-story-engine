@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
+import Tooltip, { useTooltip } from './Tooltip.jsx';
 
-export default function VizCanvas({ scene, data, onHover, onLeave }) {
+export default function VizCanvas({ scene, data }) {
   const containerRef = useRef(null);
   const [dims, setDims] = useState({ width: 0, height: 0 });
+  const { tooltip, showTooltip, hideTooltip } = useTooltip();
 
   useEffect(() => {
     const el = containerRef.current;
@@ -22,11 +24,12 @@ export default function VizCanvas({ scene, data, onHover, onLeave }) {
     <div ref={containerRef} className="viz-canvas">
       {SceneComponent && dims.width > 0 && (
         <SceneComponent
+          key={scene.id}
           data={data}
           width={dims.width}
           height={dims.height}
-          onHover={onHover}
-          onLeave={onLeave}
+          onHover={showTooltip}
+          onLeave={hideTooltip}
         />
       )}
       {!SceneComponent && (
@@ -35,6 +38,7 @@ export default function VizCanvas({ scene, data, onHover, onLeave }) {
           <p>Select a chapter to begin</p>
         </div>
       )}
+      <Tooltip tooltip={tooltip} />
     </div>
   );
 }
