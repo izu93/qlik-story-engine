@@ -13,7 +13,19 @@ export default function NarrativePanel({ chapters, activeChapter, onSwapScene })
             </span>
             <h2 className="narrative-panel__title">{chapter.title}</h2>
             <p className="narrative-panel__body">{chapter.body}</p>
-            {chapter.stat && (
+            {chapter.insights && (
+              <div className="narrative-panel__insights">
+                {chapter.insights.map((ins, i) => (
+                  <div key={i} className="narrative-panel__stat-block">
+                    <span className="narrative-panel__stat-val" style={{ color: ins.color }}>
+                      {ins.val}
+                    </span>
+                    <span className="narrative-panel__stat-lbl">{ins.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!chapter.insights && chapter.stat && (
               <div className="narrative-panel__stat">{chapter.stat}</div>
             )}
             {onSwapScene && (

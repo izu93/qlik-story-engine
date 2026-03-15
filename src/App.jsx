@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { fetchData } from './lib/databridge.js';
 import EntryScreen from './components/EntryScreen.jsx';
 import StoryView from './components/StoryView.jsx';
@@ -10,10 +10,29 @@ import './scenes/SceneRadial.jsx';
 import './scenes/SceneTreemap.jsx';
 import './scenes/SceneChord.jsx';
 
+const LOADING_MESSAGES = [
+  'Connecting to Qlik MCP...',
+  'Reading app structure...',
+  'Extracting account data...',
+  'Building your story...',
+];
+
 export default function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES[0]);
+
+  useEffect(() => {
+    if (!loading) return;
+    let i = 0;
+    setLoadingMsg(LOADING_MESSAGES[0]);
+    const interval = setInterval(() => {
+      i = (i + 1) % LOADING_MESSAGES.length;
+      setLoadingMsg(LOADING_MESSAGES[i]);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleStart = useCallback(async (appId) => {
     setLoading(true);
@@ -36,7 +55,7 @@ export default function App() {
     return (
       <div className="loading-screen">
         <div className="loading-screen__spinner" />
-        <p>Building your story...</p>
+        <p>{loadingMsg}</p>
       </div>
     );
   }
